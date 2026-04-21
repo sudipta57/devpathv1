@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { lookup } from 'node:dns/promises';
 import app from './app';
+import cors from "cors";
 
 const port = Number(process.env.PORT ?? 8000);
 
@@ -131,10 +132,23 @@ async function bootstrap(): Promise<void> {
   const supabaseOk = await validateSupabaseConnection();
   if (!supabaseOk) process.exit(1);
 
-  app.listen(port, () => {
-    // eslint-disable-next-line no-console
-    console.log(`DevPath backend listening on port ${port}`);
-  });
+  // app.listen(port, () => {
+  //   // eslint-disable-next-line no-console
+  //   console.log(`DevPath backend listening on port ${port}`);
+  // });
+  app.use(cors({
+
+  origin: "http://localhost:3000",
+
+  credentials: true
+
+}));
+
+app.listen(port, () => {
+
+  console.log(`DevPath backend listening on port ${port}`);
+
+});
 }
 
 void bootstrap();
