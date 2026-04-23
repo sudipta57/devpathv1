@@ -12,7 +12,7 @@ import leaderboardRoutes from './routes/leaderboard.routes';
 import plansRoutes from './routes/plans.routes';
 import authRoutes from './routes/auth.routes';
 import debugRoutes from './routes/debug.routes';
-
+import quizRoutes from './routes/quiz.routes';
 const app = express();
 
 app.use(
@@ -62,6 +62,7 @@ app.use('/api/mission', missionRoutes);
 app.use('/api/me', meRoutes);
 app.use('/api/heatmap', heatmapRoutes);
 app.use('/api/rooms', roomRoutes);
+app.use('/api/quiz', quizRoutes); 
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/plans', plansRoutes);
 app.use('/api', gamificationRoutes);

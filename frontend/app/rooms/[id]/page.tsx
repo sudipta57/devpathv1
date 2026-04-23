@@ -6,6 +6,7 @@ import { useAuth } from '@clerk/nextjs';
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
 import type { LeaderboardEntry, RoomFeedEvent } from '@/lib/types/room';
+import RoomQuizPanel from '@/components/RoomQuizPanel';
 
 function getSupabaseRealtime() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -56,6 +57,7 @@ export default function RoomPage() {
   const [roomCode, setRoomCode] = useState('');
   const [roomType, setRoomType] = useState('daily_sprint');
   const [isLive, setIsLive] = useState(false);
+  const [ownerId, setOwnerId] = useState('');
   const [nudgedUsers, setNudgedUsers] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [pageError, setPageError] = useState<string | null>(null);
@@ -66,7 +68,10 @@ export default function RoomPage() {
       const token = await getToken();
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/rooms/${roomId}/leaderboard`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } ,
+        credentials: "include"
+      }
+        
       );
       if (!res.ok) return null;
       const data = await res.json();
@@ -82,8 +87,10 @@ export default function RoomPage() {
   const fetchFeed = useCallback(async (): Promise<RoomFeedEvent[] | null> => {
     try {
       const token = await getToken();
+     
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms/${roomId}/feed`, {
         headers: { Authorization: `Bearer ${token}` },
+        credentials: "include"
       });
       if (!res.ok) return null;
       const data = await res.json();
@@ -98,9 +105,11 @@ export default function RoomPage() {
 
   const fetchRoomInfo = useCallback(async (): Promise<'ok' | 'not_found' | 'error'> => {
     try {
-      const token = await getToken();
+       const token = await getToken();
+       
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms/${roomId}`, {
         headers: { Authorization: `Bearer ${token}` },
+        credentials: "include"
       });
       if (res.status === 404) {
         return 'not_found';
@@ -110,9 +119,11 @@ export default function RoomPage() {
         return 'error';
       }
       const data = await res.json();
+      console.log('room data:', data); 
       setRoomName(data.data?.name ?? '');
       setRoomCode(data.data?.code ?? '');
       setRoomType(data.data?.type ?? 'daily_sprint');
+      setOwnerId(data.data?.owner_id ?? ''); 
       setPageError(null);
       return 'ok';
     } catch {
@@ -194,14 +205,17 @@ export default function RoomPage() {
       if (supabase && channel) supabase.removeChannel(channel);
       clearInterval(pollInterval);
     };
-  }, [roomId, isLive, fetchLeaderboard, fetchFeed]);
+     }, [roomId]);
+  // [roomId, isLive, fetchLeaderboard, fetchFeed]);
 
   async function handleNudge(targetUserId: string) {
     try {
-      const token = await getToken();
+      // const token = await getToken();
+      const token = await getToken({ template: "default" });
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rooms/${roomId}/nudge/${targetUserId}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
+        credentials: "include"
       });
       setNudgedUsers((prev) => new Set([...prev, targetUserId]));
     } catch (err) {
@@ -309,6 +323,7 @@ export default function RoomPage() {
           {/* Leaderboard — main column */}
           <div className="lg:col-span-8">
             <div className="bg-surface-container-lowest rounded-xl border border-surface-container-high shadow-sm">
+              
               <div className="px-6 py-4 border-b border-surface-container-high flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-primary text-lg">leaderboard</span>
@@ -408,9 +423,16 @@ export default function RoomPage() {
                   </div>
                 )}
               </div>
-            </div>
           </div>
 
+          <RoomQuizPanel
+            roomId={roomId}
+            isAdmin={true}
+          />
+
+        </div>
+
+          {/* Sidebar — activity feed + share */}
           {/* Sidebar — activity feed + share */}
           <aside className="lg:col-span-4 flex flex-col gap-6">
             {/* Share card */}

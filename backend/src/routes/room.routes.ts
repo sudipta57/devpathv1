@@ -301,3 +301,32 @@ router.post('/:id/nudge/:userId', async (req: Request, res: Response): Promise<R
 });
 
 export default router;
+// router.post('/:id/leave', requireAuth, async (req: Request, res: Response): Promise<Response> => {
+//   const roomId = String(req.params.id ?? '').trim();
+//   const userId = req.userId;
+
+//   if (!isValidRoomId(roomId)) {
+//     return sendError(res, 400, 'BAD_REQUEST', 'Invalid room ID.');
+//   }
+
+//   if (!isNonEmptyString(userId)) {
+//     return sendError(res, 401, 'UNAUTHORIZED', 'Authentication required.');
+//   }
+
+//   try {
+//     const { error } = await supabaseAdmin
+//       .from('room_members')
+//       .delete()
+//       .eq('room_id', roomId)
+//       .eq('user_id', userId);
+
+//     if (error) {
+//       console.error(error);
+//       return sendError(res, 500, 'DB_ERROR', 'Failed to leave room.');
+//     }
+
+//     return sendSuccess(res, 200, { message: 'Left room successfully' });
+//   } catch (err) {
+//     return sendError(res, 500, 'INTERNAL_ERROR', 'Unexpected error while leaving room.');
+//   }
+// });
